@@ -1,0 +1,65 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f1ea;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+header {
+    text-align: center;
+    border-bottom: 2px solid #e0d8c3;
+    padding-bottom: 20px;
+}
+
+#surah-select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    margin: 20px 0;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+}
+
+#quran-display {
+    line-height: 2.5;
+    font-size: 1.5rem;
+    text-align: justify;
+}
+
+.ayah {
+    cursor: pointer;
+    transition: 0.3s;
+    padding: 2px 5px;
+}
+
+.ayah:hover {
+    background-color: #f1c40f44;
+}
+
+.ayah-num {
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 1rem;
+    margin: 0 5px;
+}
+
+.bookmark-btn {
+    font-size: 0.8rem;
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-right: 10px;
+    cursor: pointer;
+}
