@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مصحف الهداية</title>
+    <style>
+        /* كود الـ CSS مدمج هنا لضمان عمل الشكل فوراً */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f1ea; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #e0d8c3; padding-bottom: 10px; }
+        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin: 20px 0; font-size: 1rem; cursor: pointer; }
+        #quran-display { line-height: 2.5; font-size: 1.6rem; text-align: justify; padding: 10px; border-top: 1px solid #eee; }
+        .ayah { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: 0.2s; }
+        .ayah:hover { background: #f1c40f33; }
+        .ayah-num { color: #27ae60; font-weight: bold; font-size: 1rem; }
+        #bookmark-bar { background: #e8f5e9; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 0.9rem; }
+        button { background: #27ae60; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>القرآن الكريم</h1>
+        <div id="bookmark-bar"></div>
+        <select id="surah-select"><option>جاري تحميل الفهرس...</option></select>
+        <div id="quran-display">الرجاء اختيار سورة من القائمة بالأسفل...</div>
+    </div>
+
+    <script>
+        /* كود الـ JS مدمج هنا لضمان عمل الفهرس فوراً */
+        const select = document.getElementById('surah-select');
+        const display = document.getElementById('quran-display');
+        const bar = document.getElementById('bookmark-bar');
+
+        async function init() {
+            const res = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await res.json();
+            select.innerHTML = '<option value="">اختر السورة...</option>';
+            data.data.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.number;
+                opt.textContent = `${s.number}. ${s.name}`;
+                select.appendChild(opt);
+            });
+            showBookmark();
+        }
+
+        select.onchange = async (e) => {
+            if(!e.target.value) return;
+            display.innerHTML = "جاري التحميل...";
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${e.target.value}`);
+            const data = await res.json();
+            render(data.data);
+        };
+
+        function render(surah) {
+            display.innerHTML = `<h2>${surah.name}</h2>`;
+            surah.ayahs.forEach(a => {
+                const span = document.createElement('span');
+                span.className = 'ayah';
+                span.innerHTML = `${a.text} <span class="ayah-num">(${a.numberInSurah})</span> `;
+                span.onclick = () => {
+                    localStorage.setItem('quran_save', JSON.stringify({n: surah.name, id: surah.number, a: a.numberInSurah}));
+                    showBookmark();
+                    alert('تم حفظ مكانك في سورة ' + surah.name);
+                };
+                display.appendChild(span);
+            });
+        }
+
+        function showBookmark() {
+            const saved = JSON.parse(localStorage.getItem('quran_save'));
+            if(saved) {
+                bar.style.display = 'block';
+                bar.innerHTML = `آخر قراءة: ${saved.n} (آية ${saved.a}) <button onclick="selectSurah(${saved.id})">انتقال</button>`;
+            }
+        }
+
+        window.selectSurah = (id) => { select.value = id; select.dispatchEvent(new Event('change')); };
+        init();
+    </script>
+</body>
+</html>
