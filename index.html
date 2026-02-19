@@ -3,113 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مصحف الهداية - الخط العثماني والتفسير</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <title>مصحف الهداية - خيارات الآية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2c5d3f; /* أخضر ملكي */
-            --bg-color: #fdfaf0;     /* لون ورقي */
-        }
-
-        body {
-            font-family: 'Amiri', serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-            border: 1px solid #e2d7b5;
-        }
-
-        header {
-            text-align: center;
-            border-bottom: 2px solid var(--primary-color);
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-        }
-
-        h1 { color: var(--primary-color); font-size: 2.8rem; margin: 0; }
-
-        #surah-select {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.3rem;
-            font-family: 'Amiri', serif;
-            border: 2px solid var(--primary-color);
-            border-radius: 10px;
-            background: #fff;
-            color: var(--primary-color);
-            cursor: pointer;
-        }
-
-        /* تنسيق الآيات */
-        #quran-display {
-            line-height: 3;
-            font-size: 2rem;
-            text-align: justify;
-            direction: rtl;
-            padding: 20px;
-        }
-
-        .ayah {
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline;
-        }
-
-        .ayah:hover { background: #f1c40f33; text-decoration: underline; }
-
-        .ayah-num {
-            color: var(--primary-color);
-            font-size: 1.2rem;
-            margin: 0 5px;
-            border: 1px solid var(--primary-color);
-            border-radius: 50%;
-            padding: 2px 8px;
-            font-family: Arial, sans-serif; /* ليكون الرقم واضحاً */
-        }
-
-        /* نافذة التفسير (Modal) */
-        #modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        #tafseer-box {
-            background: white;
-            width: 90%;
-            max-width: 600px;
-            padding: 30px;
-            border-radius: 15px;
-            position: relative;
-            text-align: right;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-
-        #tafseer-box h3 { color: var(--primary-color); margin-top: 0; }
-        #tafseer-content { font-size: 1.3rem; line-height: 1.8; color: #555; }
+        :root { --primary: #2c5d3f; --bg: #fdfaf0; }
+        body { font-family: 'Amiri', serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #e2d7b5; }
         
-        .close-btn {
-            position: absolute;
-            top: 10px; left: 10px;
-            background: #e74c3c;
-            color: white; border: none;
-            padding: 5px 12px; border-radius: 5px;
-            cursor: pointer;
+        header { text-align: center; border-bottom: 2px solid var(--primary); margin-bottom: 20px; padding-bottom: 10px; }
+        h1 { color: var(--primary); font-size: 2.5rem; margin: 0; }
+
+        #bookmark-bar { 
+            background: #e8f5e9; padding: 12px; border-radius: 10px; 
+            margin-bottom: 20px; display: none; align-items: center; 
+            justify-content: space-between; border: 1px solid #c8e6c9;
+            font-weight: bold; color: var(--primary);
         }
+        
+        #surah-select { 
+            width: 100%; padding: 12px; font-size: 1.2rem; font-family: 'Amiri', serif;
+            border: 2px solid var(--primary); border-radius: 8px; margin-bottom: 20px;
+        }
+
+        #quran-display { line-height: 3.2; font-size: 2.1rem; text-align: justify; padding: 10px; }
+        .ayah { cursor: pointer; transition: 0.2s; border-radius: 5px; padding: 0 4px; }
+        .ayah:hover { background: #f1c40f22; }
+        .ayah-num { color: var(--primary); font-size: 1.2rem; font-family: Arial; border: 1px solid #ccc; border-radius: 50%; padding: 2px 6px; margin: 0 5px; }
+
+        /* نافذة الخيارات والتفسير */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        #modal-box { background: white; width: 85%; max-width: 500px; padding: 25px; border-radius: 15px; text-align: center; position: relative; }
+        
+        .menu-options { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .opt-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'Amiri'; font-size: 1.1rem; flex: 1; }
+        .opt-btn.secondary { background: #f39c12; }
+        
+        .close-btn { position: absolute; top: 10px; left: 10px; background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        #content-area { margin-top: 20px; text-align: right; font-size: 1.3rem; line-height: 1.6; border-top: 1px solid #eee; padding-top: 15px; display: none; }
     </style>
 </head>
 <body>
@@ -117,87 +47,62 @@
     <div class="container">
         <header>
             <h1>القرآن الكريم</h1>
-            <p>اضغط على الآية لعرض التفسير الميسر</p>
+            <p>اضغط على الآية لاختيار التفسير أو حفظ العلامة</p>
         </header>
 
-        <select id="surah-select">
-            <option value="">⏳ جاري تحميل الفهرس...</option>
-        </select>
-
+        <div id="bookmark-bar"></div>
+        <select id="surah-select"><option value="">جاري التحميل...</option></select>
         <div id="quran-display"></div>
     </div>
 
     <div id="modal-overlay">
-        <div id="tafseer-box">
-            <button class="close-btn" onclick="closeTafseer()">إغلاق X</button>
-            <h3 id="tafseer-title">تفسير الآية</h3>
-            <p id="ayah-text-preview" style="font-style: italic; color: #888; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
-            <div id="tafseer-content">جاري جلب التفسير...</div>
+        <div id="modal-box">
+            <button class="close-btn" onclick="closeModal()">إغلاق</button>
+            <h3 id="modal-title" style="color:var(--primary); margin-bottom:10px;">خيارات الآية</h3>
+            <p id="ayah-preview" style="font-style: italic; color: #666;"></p>
+            
+            <div class="menu-options" id="menu-btns">
+                <button class="opt-btn" id="btn-tafseer">📖 عرض التفسير</button>
+                <button class="opt-btn secondary" id="btn-save">📍 حفظ كعلامة</button>
+            </div>
+
+            <div id="content-area"></div>
         </div>
     </div>
 
     <script>
         const select = document.getElementById('surah-select');
         const display = document.getElementById('quran-display');
+        const bookmarkBar = document.getElementById('bookmark-bar');
         const overlay = document.getElementById('modal-overlay');
+        const contentArea = document.getElementById('content-area');
+        const menuBtns = document.getElementById('menu-btns');
 
-        // 1. جلب الفهرس
+        let currentData = {}; // لتخزين بيانات الآية المحددة مؤقتاً
+
         async function loadIndex() {
             const res = await fetch('https://api.alquran.cloud/v1/surah');
             const data = await res.json();
-            select.innerHTML = '<option value="">📖 اختر السورة المرجوة...</option>';
+            select.innerHTML = '<option value="">📖 اختر السورة...</option>';
             data.data.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.number;
                 opt.textContent = `${s.number}. ${s.name}`;
                 select.appendChild(opt);
             });
+            checkBookmark();
         }
 
-        // 2. جلب السورة
-        select.onchange = async (e) => {
-            if(!e.target.value) return;
-            display.innerHTML = "جاري تحميل الآيات بالخط العثماني...";
-            const res = await fetch(`https://api.alquran.cloud/v1/surah/${e.target.value}`);
+        select.onchange = (e) => { if(e.target.value) loadSurah(e.target.value); };
+
+        async function loadSurah(id) {
+            display.innerHTML = "جاري التحميل...";
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}`);
             const data = await res.json();
-            renderSurah(data.data);
-        };
-
-        function renderSurah(surah) {
-            display.innerHTML = `<h2 style="text-align:center; color:#2c5d3f;">﴿ ${surah.name} ﴾</h2>`;
-            surah.ayahs.forEach(ayah => {
-                const span = document.createElement('span');
-                span.className = 'ayah';
-                span.innerHTML = `${ayah.text} <span class="ayah-num">${ayah.numberInSurah}</span> `;
-                // عند الضغط يفتح التفسير
-                span.onclick = () => showTafseer(surah.number, ayah.numberInSurah, ayah.text);
-                display.appendChild(span);
-            });
+            render(data.data);
         }
 
-        // 3. جلب التفسير (التفسير الميسر)
-        async function showTafseer(sNum, aNum, text) {
-            overlay.style.display = 'flex';
-            document.getElementById('ayah-text-preview').textContent = text;
-            document.getElementById('tafseer-content').textContent = "جاري التحميل...";
-            
-            try {
-                // نستخدم API التفسير الميسر (ar.muyassar)
-                const res = await fetch(`https://api.alquran.cloud/v1/ayah/${sNum}:${aNum}/ar.muyassar`);
-                const data = await res.json();
-                document.getElementById('tafseer-content').textContent = data.data.text;
-                document.getElementById('tafseer-title').textContent = `تفسير الآية رقم ${aNum}`;
-            } catch (err) {
-                document.getElementById('tafseer-content').textContent = "عذراً، تعذر جلب التفسير حالياً.";
-            }
-        }
-
-        function closeTafseer() { overlay.style.display = 'none'; }
-        
-        // إغلاق النافذة عند الضغط خارجها
-        window.onclick = (e) => { if(e.target == overlay) closeTafseer(); }
-
-        loadIndex();
-    </script>
-</body>
-</html>
+        function render(surah) {
+            display.innerHTML = `<h2 style="text-align:center; color:var(--primary)">﴿ ${surah.name} ﴾</h2>`;
+            surah.ayahs.forEach(a => {
+                const span
