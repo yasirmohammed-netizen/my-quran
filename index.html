@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مصحف الهداية - النسخة السحابية</title>
+    <title>مصحف الهداية - النسخة المستقرة</title>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -11,22 +11,22 @@
 
     <style>
         :root { --primary: #2c5d3f; --bg: #fdfaf0; }
-        body { font-family: 'Amiri', serif; background-color: var(--bg); margin: 0; padding: 10px; }
+        body { font-family: 'Amiri', serif; background-color: var(--bg); margin: 0; padding: 10px; direction: rtl; }
         .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); border: 1px solid #e2d7b5; }
         header { text-align: center; border-bottom: 2px solid var(--primary); margin-bottom: 15px; }
         
         .auth-panel { background: #f1f3f4; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .auth-panel input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; width: 150px; font-family: 'Amiri'; }
+        .auth-panel input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; width: 140px; font-family: 'Amiri'; }
         
         #user-info { display: none; background: #e8f5e9; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
-        #quran-display { line-height: 3.2; font-size: 2.1rem; text-align: justify; padding: 10px; }
-        .ayah { cursor: pointer; border-radius: 5px; padding: 0 4px; }
+        #quran-display { line-height: 3.2; font-size: 2.1rem; text-align: justify; padding: 15px; min-height: 300px; }
+        .ayah { cursor: pointer; border-radius: 5px; padding: 0 4px; display: inline; transition: 0.3s; }
         .ayah:hover { background: #f1c40f22; }
-        .ayah-num { color: var(--primary); font-size: 1.2rem; border: 1px solid #ccc; border-radius: 50%; padding: 2px 8px; font-family: Arial; }
+        .ayah-num { color: var(--primary); font-size: 1.2rem; border: 1px solid #ccc; border-radius: 50%; padding: 2px 8px; font-family: Arial; margin-right: 5px; }
 
         .btn-main { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'Amiri'; font-size: 1.1rem; }
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; z-index:1000; }
-        .modal-content { background:white; padding:25px; border-radius:15px; width:90%; max-width:450px; text-align:center; position: relative; }
+        .modal-content { background:white; padding:25px; border-radius:15px; width:90%; max-width:450px; text-align:center; }
     </style>
 </head>
 <body>
@@ -35,10 +35,10 @@
     <header><h1>القرآن الكريم</h1></header>
 
     <div id="auth-section" class="auth-panel">
-        <p>سجل دخولك برقم الهاتف لحفظ مكانك في السحابة</p>
+        <p>سجل دخولك لحفظ مكانك في السحابة</p>
         <input type="text" id="phone" placeholder="رقم الهاتف">
         <input type="password" id="pass" placeholder="كلمة المرور">
-        <button class="btn-main" onclick="login()">دخول / تسجيل</button>
+        <button class="btn-main" onclick="login()">دخول</button>
     </div>
 
     <div id="user-info">
@@ -49,10 +49,10 @@
     </div>
 
     <select id="surah-select" style="width:100%; padding:12px; font-family:'Amiri'; font-size:1.2rem; border-radius:8px; border:2px solid var(--primary); margin-bottom:15px;">
-        <option value="">🔄 جاري جلب الفهرس...</option>
+        <option value="">📖 اختر السورة المرجوة...</option>
     </select>
     
-    <div id="quran-display"></div>
+    <div id="quran-display">الرجاء اختيار سورة من القائمة للبدء بالقراءة.</div>
 </div>
 
 <div id="modal">
@@ -69,7 +69,7 @@
 </div>
 
 <script>
-    // بيانات Firebase الخاصة بك التي حصلت عليها
+    // بيانات Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyBUnDHcILyxYTQ_VNEu-FYyIoYMl7l9xg4",
         authDomain: "my-quran-app-486db.firebaseapp.com",
@@ -77,7 +77,7 @@
         storageBucket: "my-quran-app-486db.firebasestorage.app",
         messagingSenderId: "146158022658",
         appId: "1:146158022658:web:578db95ea06b9da0be771b",
-        databaseURL: "https://my-quran-app-486db-default-rtdb.firebaseio.com" // تأكد من مطابقة هذا الرابط لـ Realtime Database عندك
+        databaseURL: "https://my-quran-app-486db-default-rtdb.firebaseio.com"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -91,10 +91,9 @@
         fetchSurahs();
     }
 
-    // نظام الدخول
     function login() {
         const p = document.getElementById('phone').value;
-        if(p.length < 5) return alert("يرجى إدخال رقم هاتف صحيح");
+        if(p.length < 3) return alert("يرجى إدخال اسم أو رقم صحيح");
         userPhone = p;
         localStorage.setItem('quran_user', p);
         showDashboard();
@@ -105,7 +104,6 @@
         document.getElementById('user-info').style.display = 'block';
         document.getElementById('user-name').innerText = userPhone;
         
-        // استماع فوري لأي تغيير في مكان الحفظ من السحابة
         db.ref('users/' + userPhone).on('value', (snap) => {
             const data = snap.val();
             if(data) {
@@ -117,69 +115,62 @@
         });
     }
 
-    // حفظ المكان في جوجل
-    function saveToCloud() {
-        if(!userPhone) return alert("سجل دخولك أولاً");
-        db.ref('users/' + userPhone).set({
-            sId: currentAyah.sId,
-            sName: currentAyah.sName,
-            aNum: currentAyah.aNum
-        }).then(() => {
-            alert("تم الحفظ في سحابة جوجل ✅");
-            closeModal();
-        });
-    }
-
-    // جلب البيانات من API القرآن
     async function fetchSurahs() {
         try {
             const res = await fetch('https://api.alquran.cloud/v1/surah');
             const data = await res.json();
             const sel = document.getElementById('surah-select');
-            sel.innerHTML = '<option value="">📖 اختر السورة...</option>';
+            sel.innerHTML = '<option value="">📖 اختر السورة المرجوة...</option>';
             data.data.forEach(s => {
-                sel.innerHTML += `<option value="${s.number}">${s.number}. ${s.name}</option>`;
+                const opt = document.createElement('option');
+                opt.value = s.number;
+                opt.textContent = `${s.number}. ${s.name}`;
+                sel.appendChild(opt);
             });
-        } catch(e) { console.error("خطأ في جلب الفهرس"); }
+        } catch(e) { console.error("Error fetching surah index", e); }
     }
 
-    document.getElementById('surah-select').onchange = (e) => loadSurah(e.target.value);
+    document.getElementById('surah-select').onchange = (e) => {
+        if(e.target.value) loadSurah(e.target.value);
+    };
 
     async function loadSurah(id) {
-        if(!id) return;
         const display = document.getElementById('quran-display');
-        display.innerHTML = "<p style='text-align:center'>جاري التحميل...</p>";
-        const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}`);
-        const data = await res.json();
+        display.innerHTML = "<p style='text-align:center'>جاري تحميل الآيات بالخط العثماني...</p>";
         
-        display.innerHTML = `<h2 style="text-align:center; color:var(--primary)">﴿ ${data.data.name} ﴾</h2>`;
-        data.data.ayahs.forEach(a => {
-            const span = document.createElement('span');
-            span.className = 'ayah';
-            span.innerHTML = `${a.text} <span class="ayah-num">${a.numberInSurah}</span> `;
-            span.onclick = () => {
-                currentAyah = {sId: id, sName: data.data.name, aNum: a.numberInSurah, text: a.text};
-                document.getElementById('modal').style.display = 'flex';
-                document.getElementById('m-text').innerText = a.text;
-                document.getElementById('tafseer-res').style.display = 'none';
-            };
-            display.appendChild(span);
-        });
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}`);
+            const data = await res.json();
+            const surah = data.data;
+            
+            display.innerHTML = `<h2 style="text-align:center; color:var(--primary); margin-bottom:20px;">﴿ ${surah.name} ﴾</h2>`;
+            
+            surah.ayahs.forEach(a => {
+                const span = document.createElement('span');
+                span.className = 'ayah';
+                span.innerHTML = `${a.text} <span class="ayah-num">${a.numberInSurah}</span> `;
+                span.onclick = () => {
+                    currentAyah = {sId: id, sName: surah.name, aNum: a.numberInSurah, text: a.text};
+                    document.getElementById('modal').style.display = 'flex';
+                    document.getElementById('m-text').innerText = a.text;
+                    document.getElementById('tafseer-res').style.display = 'none';
+                };
+                display.appendChild(span);
+            });
+            window.scrollTo(0,0);
+        } catch(e) { 
+            display.innerHTML = "حدث خطأ أثناء تحميل الآيات. يرجى التأكد من الاتصال بالإنترنت.";
+        }
     }
 
     async function getTafseer() {
         const box = document.getElementById('tafseer-res');
         box.style.display = 'block';
-        box.innerText = "جاري جلب التفسير...";
+        box.innerText = "جاري جلب التفسير الميسر...";
         const res = await fetch(`https://api.alquran.cloud/v1/ayah/${currentAyah.sId}:${currentAyah.aNum}/ar.muyassar`);
         const data = await res.json();
         box.innerText = data.data.text;
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    
-    init();
-</script>
-</body>
-</html>
+    function saveToCloud() {
+        if(!userPhone) return alert("سجل دخولك أولاً");
