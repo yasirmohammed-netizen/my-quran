@@ -3,129 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مصحف الهداية - نظام المستخدمين</title>
+    <title>مصحف الهداية - النسخة السحابية</title>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
         :root { --primary: #2c5d3f; --bg: #fdfaf0; }
         body { font-family: 'Amiri', serif; background-color: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); }
+        .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); border: 1px solid #e2d7b5; }
+        header { text-align: center; border-bottom: 2px solid var(--primary); margin-bottom: 15px; }
         
-        /* واجهة تسجيل الدخول */
-        .auth-box { 
-            background: #f1f3f4; padding: 15px; border-radius: 10px; 
-            margin-bottom: 20px; text-align: center; border: 1px solid #ddd;
-        }
-        .auth-box input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin: 5px; width: 140px; }
-        .btn-auth { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .auth-panel { background: #f1f3f4; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .auth-panel input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 5px; width: 150px; font-family: 'Amiri'; }
         
-        #user-greeting { font-weight: bold; color: var(--primary); margin-bottom: 10px; display: none; }
-        #bookmark-bar { background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; }
-        select { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid var(--primary); border-radius: 8px; margin-bottom: 15px; }
-        #quran-display { line-height: 2.8; font-size: 1.9rem; text-align: justify; }
-        .ayah { cursor: pointer; padding: 0 3px; border-radius: 4px; }
+        #user-info { display: none; background: #e8f5e9; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
+        #quran-display { line-height: 3.2; font-size: 2.1rem; text-align: justify; padding: 10px; }
+        .ayah { cursor: pointer; border-radius: 5px; padding: 0 4px; }
         .ayah:hover { background: #f1c40f22; }
+        .ayah-num { color: var(--primary); font-size: 1.2rem; border: 1px solid #ccc; border-radius: 50%; padding: 2px 8px; font-family: Arial; }
+
+        .btn-main { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'Amiri'; font-size: 1.1rem; }
+        #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background:white; padding:25px; border-radius:15px; width:90%; max-width:450px; text-align:center; position: relative; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="text-align: center;"><h1>القرآن الكريم</h1></header>
+    <header><h1>القرآن الكريم</h1></header>
 
-    <div class="auth-box" id="auth-section">
-        <p style="margin: 0 0 10px 0;">سجل دخولك لحفظ مكان وصولك ومزامنته</p>
-        <input type="text" id="user-id" placeholder="رقم الهاتف">
-        <input type="password" id="user-pass" placeholder="كلمة المرور">
-        <button class="btn-auth" onclick="handleLogin()">دخول / تسجيل</button>
+    <div id="auth-section" class="auth-panel">
+        <p>سجل دخولك برقم الهاتف لحفظ مكانك في السحابة</p>
+        <input type="text" id="phone" placeholder="رقم الهاتف">
+        <input type="password" id="pass" placeholder="كلمة المرور">
+        <button class="btn-main" onclick="login()">دخول / تسجيل</button>
     </div>
 
-    <div id="user-greeting">أهلاً بك يا <span id="display-username"></span> 
-        <button onclick="handleLogout()" style="font-size: 0.7rem; cursor: pointer;">(خروج)</button>
+    <div id="user-info">
+        <span>مرحباً: <b id="user-name"></b></span> | 
+        <span id="remote-bookmark">لا يوجد مكان محفوظ</span>
+        <button id="btn-sync" class="btn-main" style="padding:4px 10px; font-size:0.8rem; display:none; margin-right:10px;">انتقال</button>
+        <button onclick="logout()" style="float:left; color:red; background:none; border:none; cursor:pointer;">خروج</button>
     </div>
 
-    <div id="bookmark-bar"></div>
-    <select id="surah-select"><option value="">🔄 جاري جلب الفهرس...</option></select>
+    <select id="surah-select" style="width:100%; padding:12px; font-family:'Amiri'; font-size:1.2rem; border-radius:8px; border:2px solid var(--primary); margin-bottom:15px;">
+        <option value="">🔄 جاري جلب الفهرس...</option>
+    </select>
+    
     <div id="quran-display"></div>
 </div>
 
+<div id="modal">
+    <div class="modal-content">
+        <h3 id="m-title" style="color:var(--primary)">خيارات الآية</h3>
+        <p id="m-text" style="font-style:italic; color:#666;"></p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button class="btn-main" onclick="getTafseer()">📖 التفسير</button>
+            <button class="btn-main" style="background:#f39c12" onclick="saveToCloud()">📍 حفظ المكان</button>
+        </div>
+        <button onclick="closeModal()" style="margin-top:15px; background:none; border:none; color:#666; cursor:pointer;">إلغاء</button>
+        <div id="tafseer-res" style="margin-top:15px; text-align:right; display:none; border-top:1px solid #eee; padding-top:10px; font-size:1.2rem;"></div>
+    </div>
+</div>
+
 <script>
-    // ملاحظة: للتطبيق الفعلي، تحتاج لربط هذا بـ Database مثل Firebase.
-    // حالياً سأستخدم محاكاة ذكية (Mock API) لتوضيح الفكرة.
+    // بيانات Firebase الخاصة بك التي حصلت عليها
+    const firebaseConfig = {
+        apiKey: "AIzaSyBUnDHcILyxYTQ_VNEu-FYyIoYMl7l9xg4",
+        authDomain: "my-quran-app-486db.firebaseapp.com",
+        projectId: "my-quran-app-486db",
+        storageBucket: "my-quran-app-486db.firebasestorage.app",
+        messagingSenderId: "146158022658",
+        appId: "1:146158022658:web:578db95ea06b9da0be771b",
+        databaseURL: "https://my-quran-app-486db-default-rtdb.firebaseio.com" // تأكد من مطابقة هذا الرابط لـ Realtime Database عندك
+    };
 
-    let currentUser = localStorage.getItem('logged_user') || null;
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    async function init() {
-        if (currentUser) showUserUI();
-        loadSurahIndex();
+    let userPhone = localStorage.getItem('quran_user') || null;
+    let currentAyah = {};
+
+    function init() {
+        if(userPhone) showDashboard();
+        fetchSurahs();
     }
 
-    function handleLogin() {
-        const id = document.getElementById('user-id').value;
-        const pass = document.getElementById('user-pass').value;
-
-        if (id.length < 3 || pass.length < 3) {
-            alert("يرجى إدخال بيانات صحيحة");
-            return;
-        }
-
-        // في الواقع هنا نرسل البيانات للسيرفر
-        currentUser = id;
-        localStorage.setItem('logged_user', id);
-        showUserUI();
-        alert("تم تسجيل الدخول بنجاح");
+    // نظام الدخول
+    function login() {
+        const p = document.getElementById('phone').value;
+        if(p.length < 5) return alert("يرجى إدخال رقم هاتف صحيح");
+        userPhone = p;
+        localStorage.setItem('quran_user', p);
+        showDashboard();
     }
 
-    function showUserUI() {
+    function showDashboard() {
         document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('user-greeting').style.display = 'block';
-        document.getElementById('display-username').innerText = currentUser;
-        checkRemoteBookmark();
-    }
-
-    function handleLogout() {
-        localStorage.removeItem('logged_user');
-        location.reload();
-    }
-
-    async function loadSurahIndex() {
-        const res = await fetch('https://api.alquran.cloud/v1/surah');
-        const data = await res.json();
-        const select = document.getElementById('surah-select');
-        select.innerHTML = '<option value="">📖 اختر السورة...</option>';
-        data.data.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.number;
-            opt.textContent = `${s.number}. ${s.name}`;
-            select.appendChild(opt);
+        document.getElementById('user-info').style.display = 'block';
+        document.getElementById('user-name').innerText = userPhone;
+        
+        // استماع فوري لأي تغيير في مكان الحفظ من السحابة
+        db.ref('users/' + userPhone).on('value', (snap) => {
+            const data = snap.val();
+            if(data) {
+                document.getElementById('remote-bookmark').innerText = `آخر مكان: ${data.sName} (${data.aNum})`;
+                const btn = document.getElementById('btn-sync');
+                btn.style.display = 'inline-block';
+                btn.onclick = () => loadSurah(data.sId);
+            }
         });
     }
 
-    // هنا يتم حفظ البيانات وربطها باسم المستخدم
-    function saveUserPlace(sId, sName, aNum) {
-        if (!currentUser) {
-            alert("يرجى تسجيل الدخول أولاً لحفظ مكانك!");
-            return;
-        }
-        
-        const saveKey = `bookmark_${currentUser}`;
-        const data = { sId, sName, aNum };
-        localStorage.setItem(saveKey, JSON.stringify(data));
-        
-        alert(`تم حفظ وصولك يا ${currentUser} في سورة ${sName}`);
-        checkRemoteBookmark();
+    // حفظ المكان في جوجل
+    function saveToCloud() {
+        if(!userPhone) return alert("سجل دخولك أولاً");
+        db.ref('users/' + userPhone).set({
+            sId: currentAyah.sId,
+            sName: currentAyah.sName,
+            aNum: currentAyah.aNum
+        }).then(() => {
+            alert("تم الحفظ في سحابة جوجل ✅");
+            closeModal();
+        });
     }
 
-    function checkRemoteBookmark() {
-        if (!currentUser) return;
-        const saved = JSON.parse(localStorage.getItem(`bookmark_${currentUser}`));
-        const bar = document.getElementById('bookmark-bar');
-        if (saved) {
-            bar.style.display = 'flex';
-            bar.innerHTML = `<span>📍 مكانك المحفوظ: ${saved.sName} (${saved.aNum})</span>
-                            <button onclick="loadSurah(${saved.sId})">انتقال</button>`;
-        }
+    // جلب البيانات من API القرآن
+    async function fetchSurahs() {
+        try {
+            const res = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await res.json();
+            const sel = document.getElementById('surah-select');
+            sel.innerHTML = '<option value="">📖 اختر السورة...</option>';
+            data.data.forEach(s => {
+                sel.innerHTML += `<option value="${s.number}">${s.number}. ${s.name}</option>`;
+            });
+        } catch(e) { console.error("خطأ في جلب الفهرس"); }
     }
 
-    // ... بقية دوال تحميل السور وعرضها (تستخدم saveUserPlace عند الضغط)
+    document.getElementById('surah-select').onchange = (e) => loadSurah(e.target.value);
+
+    async function loadSurah(id) {
+        if(!id) return;
+        const display = document.getElementById('quran-display');
+        display.innerHTML = "<p style='text-align:center'>جاري التحميل...</p>";
+        const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}`);
+        const data = await res.json();
+        
+        display.innerHTML = `<h2 style="text-align:center; color:var(--primary)">﴿ ${data.data.name} ﴾</h2>`;
+        data.data.ayahs.forEach(a => {
+            const span = document.createElement('span');
+            span.className = 'ayah';
+            span.innerHTML = `${a.text} <span class="ayah-num">${a.numberInSurah}</span> `;
+            span.onclick = () => {
+                currentAyah = {sId: id, sName: data.data.name, aNum: a.numberInSurah, text: a.text};
+                document.getElementById('modal').style.display = 'flex';
+                document.getElementById('m-text').innerText = a.text;
+                document.getElementById('tafseer-res').style.display = 'none';
+            };
+            display.appendChild(span);
+        });
+    }
+
+    async function getTafseer() {
+        const box = document.getElementById('tafseer-res');
+        box.style.display = 'block';
+        box.innerText = "جاري جلب التفسير...";
+        const res = await fetch(`https://api.alquran.cloud/v1/ayah/${currentAyah.sId}:${currentAyah.aNum}/ar.muyassar`);
+        const data = await res.json();
+        box.innerText = data.data.text;
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    
     init();
 </script>
 </body>
